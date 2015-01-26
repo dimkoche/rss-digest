@@ -1,4 +1,3 @@
-#
 import urllib.request as urllib2
 import feedparser
 import signal
@@ -12,13 +11,21 @@ timeout = 5
 
 
 class DB:
-    def create_db(self):
-        if os.path.exists(db_path):
-            exit('DB file already exists: %s' % os.path.abspath(db_path))
+    db = None
 
-        con = sqlite3.connect(db_path)
-        cur = con.cursor()
-        cur.executescript("""
+    def __init__(self):
+        self.db = sqlite3.connect(db_path)
+        self.db.row_factory = sqlite3.Row
+
+    def get_connection(self):
+        return self.db.cursor()
+
+    def create_db(self):
+        #if os.path.exists(db_path):
+        #    exit('DB file already exists: %s' % os.path.abspath(db_path))
+
+        c = self.get_connection()
+        c.executescript("""
             create table source(
                 id integer primary key,
                 url text
@@ -38,6 +45,7 @@ class DB:
             ("http://grosslarnakh.livejournal.com/data/rss"),
             ("http://anykeen.net/rss");
             """)
+        c.close()
 
     def send(self):
         template = '''
@@ -75,11 +83,10 @@ class DB:
             self.update_source(source)
 
     def get_sources(self):
-        con = sqlite3.connect(db_path)
-        cur = con.cursor()
-        cur.execute('SELECT id, url FROM source')
-        res = cur.fetchall()
-        cur.close()
+        c = self.get_connection()
+        c.execute('SELECT id, url FROM source')
+        res = c.fetchall()
+        c.close()
         return res
 
     def get_items(self):
@@ -90,9 +97,7 @@ class DB:
             join source s on i.source_id=s.id
             where i.sent_date is null
             order by i.source_id'''
-        con = sqlite3.connect(db_path)
-        con.row_factory = sqlite3.Row
-        c = con.cursor()
+        c = self.get_connection()
         c.execute(sql)
 
         source_id = 0
@@ -160,18 +165,16 @@ class DB:
             return False
 
     def insert_item(self, url, title, source_id):
-        con = sqlite3.connect(db_path)
-        c = con.cursor()
+        c = self.get_connection()
         c.execute("INSERT INTO item(url, title, source_id) VALUES (?, ?, ?)", (url, title, source_id))
         item_id = c.lastrowid
-        con.commit()
-        con.close()
+        self.db.commit()
+        c.close()
         return item_id
 
     def get_item_by_url(self, url):
-        con = sqlite3.connect(db_path)
-        c = con.cursor()
+        c = self.get_connection()
         c.execute('''SELECT url,title,source_id,sent_date FROM item WHERE url = ?''', (url,))
         item = c.fetchone()
-        con.close()
+        c.close()
         return item
