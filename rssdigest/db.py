@@ -9,6 +9,17 @@ import datetime
 db_path = 'db.sqlite'
 timeout = 5
 
+def get_http_response(url):
+    req = urllib2.Request(url)
+    try:
+        signal.alarm(timeout)
+        response = urllib2.urlopen(req)
+        signal.alarm(0)
+    except Exception as exc:
+        print(exc)
+        return False
+    return response
+
 
 class DB:
     db = None
@@ -120,18 +131,7 @@ class DB:
 
 
     def update_source(self, source):
-        print(source[1])
-
-        def get_http_response(url):
-            req = urllib2.Request(url)
-            try:
-                signal.alarm(timeout)
-                response = urllib2.urlopen(req)
-                signal.alarm(0)
-            except Exception as exc:
-                print(exc)
-                return False
-            return response
+        print('Updating:', source['url'])
 
         response = get_http_response(source[1])
         if not response:
@@ -159,9 +159,9 @@ class DB:
         existed_item = self.get_item_by_url(url)
         if not existed_item:
             item_id = self.insert_item(url, title, source[0])
-            print(url, source, '===>', item_id)
+            print(url, source['id'], '===>', item_id)
         else:
-            print(url, source, '===> Already exists')
+            print(url, source['id'], '===> Already exists')
             return False
 
     def insert_item(self, url, title, source_id):
