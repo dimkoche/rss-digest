@@ -1,10 +1,10 @@
 from optparse import OptionParser
 from rssdigest.db import DB
 from rssdigest.mailer import Mailer
-from cfg import db_path, mailgun
+from cfg import db_path, mail_cfg
 
 db = DB(db_path)
-mailer = Mailer(mailgun, db)
+mailer = Mailer(mail_cfg, db)
 
 
 def main():
