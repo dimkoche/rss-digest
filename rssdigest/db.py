@@ -1,13 +1,10 @@
 import urllib.request as urllib2
 import feedparser
 import signal
-import pystache
-import os
 import sqlite3
-import datetime
 
-db_path = 'db.sqlite'
 timeout = 5
+
 
 def get_http_response(url):
     req = urllib2.Request(url)
@@ -24,7 +21,7 @@ def get_http_response(url):
 class DB:
     db = None
 
-    def __init__(self):
+    def __init__(self, db_path):
         self.db = sqlite3.connect(db_path)
         self.db.row_factory = sqlite3.Row
 
@@ -57,32 +54,6 @@ class DB:
             ("http://anykeen.net/rss");
             """)
         c.close()
-
-    def send(self):
-        template = '''
-          {{greeting}}
-          <ul>
-          {{#sources}}
-              <li><b><a href={{url}}>{{title}}</a></b></li>
-              <ul>
-              {{#items}}
-                <li><a href={{url}}>{{title}}</a></li>
-              {{/items}}
-              </ul>
-          {{/sources}}
-          </ul>
-           Created by {{information.product}}
-        '''
-
-        context = {
-            'greeting': 'Digest #%s' % datetime.datetime.now(),
-            'information': {
-                'product': 'RSS-Digest'
-            },
-            'sources': self.get_items()
-        }
-
-        print(pystache.render(template, context))
 
     def update(self):
         sources = self.get_sources()
@@ -117,7 +88,11 @@ class DB:
         last_item = None
         for item in c:
             if item['source_id'] != source_id and source_id != 0:
-                res.append({'title': last_item['s_title'], 'url': last_item['s_url'], 'items': items})
+                res.append({
+                    'title': last_item['s_title'],
+                    'url': last_item['s_url'],
+                    'items': items
+                })
                 items = []
 
             items.append({'title': item['title'], 'url': item['url']})
@@ -125,10 +100,13 @@ class DB:
             source_id = item['source_id']
             last_item = item
 
-        res.append({'title': last_item['s_title'], 'url': last_item['s_url'], 'items': items})
+        res.append({
+            'title': last_item['s_title'],
+            'url': last_item['s_url'],
+            'items': items
+        })
         c.close()
         return res
-
 
     def update_source(self, source):
         print('Updating:', source['url'])
@@ -146,7 +124,6 @@ class DB:
                 self.handle_feed_item(item, source)
             except Exception as e:
                 raise e
-                break
         return False
 
     def handle_feed_item(self, item, source):
@@ -166,7 +143,10 @@ class DB:
 
     def insert_item(self, url, title, source_id):
         c = self.get_connection()
-        c.execute("INSERT INTO item(url, title, source_id) VALUES (?, ?, ?)", (url, title, source_id))
+        c.execute(
+            "INSERT INTO item(url, title, source_id) VALUES (?, ?, ?)",
+            (url, title, source_id)
+        )
         item_id = c.lastrowid
         self.db.commit()
         c.close()
@@ -174,7 +154,10 @@ class DB:
 
     def get_item_by_url(self, url):
         c = self.get_connection()
-        c.execute('''SELECT url,title,source_id,sent_date FROM item WHERE url = ?''', (url,))
+        c.execute(
+            'SELECT url,title,source_id,sent_date FROM item WHERE url = ?',
+            (url,)
+        )
         item = c.fetchone()
         c.close()
         return item
