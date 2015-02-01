@@ -26,11 +26,8 @@ class DB:
         self.db.row_factory = sqlite3.Row
 
     def create_db(self):
-        #if os.path.exists(db_path):
-        #    exit('DB file already exists: %s' % os.path.abspath(db_path))
-
         c = self._get_connection()
-        c.executescript("""
+        sql = """
             create table source(
                 id integer primary key,
                 title text,
@@ -49,8 +46,11 @@ class DB:
             values
             ("http://avva.livejournal.com/data/rss"),
             ("http://grosslarnakh.livejournal.com/data/rss"),
-            ("http://anykeen.net/rss");
-            """)
+            ("http://anykeen.net/rss");"""
+        try:
+            c.executescript(sql)
+        except sqlite3.OperationalError as exc:
+            print('Error: ', exc)
         c.close()
 
     def update(self):
