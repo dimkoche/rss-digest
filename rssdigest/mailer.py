@@ -29,18 +29,72 @@ class Mailer:
 
     def get_email_text(self):
         template = '''
-          {{greeting}}
-          <ul>
-          {{#sources}}
-              <li><b><a href={{url}}>{{title}}</a></b></li>
-              <ul>
-              {{#items}}
-                <li><a href={{url}}>{{title}}</a></li>
-              {{/items}}
-              </ul>
-          {{/sources}}
-          </ul>
-           Created by {{information.product}}
+          <style type="text/css">
+            * {font-family: Helvetica; padding: 0px; margin: 0px;}
+            body {
+                -webkit-font-smoothing: antialiased;
+                -webkit-text-size-adjust: none;
+                width: 100%!important;
+                height: 100%;
+                background-color: #f6f6f6;
+            }
+            h1 {padding-left: 7px; margin: 15px 0px 5px 0px;}
+            ul {padding-left: 5px;}
+            li {
+                margin: 4px 5px 1px 5px;
+                list-style-position: inside;
+            }
+            ul ul {
+                margin-left: 10px;
+            }
+
+            a:link {
+                color: #333;
+                text-decoration: none;
+                border-bottom: 2px solid #c9c9c9;
+            }
+            a:visited {
+                color: #c7d7ed;
+                border-bottom: 1px solid;
+            }
+            a:visited:hover {
+                color: #333;
+                border-bottom: 1px solid #c9c9c9;
+            }
+            a:hover {
+                color: #000;
+                border-bottom-color: #ed7e88;
+            }
+
+            .source {
+                margin-top: 10px;
+            }
+            #main {
+                width:600px;
+                margin:0 auto;
+                border: 1px solid;
+                background-color: #ffffff;
+            }
+          </style>
+
+          <body>
+              <div id="main">
+                  <h1>{{greeting}}</h1>
+                  <ul class="sources">
+                  {{#sources}}
+                      <li class="source">
+                        <b><a href={{url}}>{{title}}</a></b>
+                      </li>
+                      <ul class="items">
+                      {{#items}}
+                        <li class="item"><a href={{url}}>{{title}}</a></li>
+                      {{/items}}
+                      </ul>
+                  {{/sources}}
+                  </ul>
+                  <p>Created by {{information.product}}</p>
+              </div>
+          </body>
         '''
 
         context = {
