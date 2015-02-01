@@ -36,6 +36,7 @@ class DB:
         c.executescript("""
             create table source(
                 id integer primary key,
+                title text,
                 url text
             );
 
@@ -74,7 +75,7 @@ class DB:
     def get_items(self):
         sql = '''
             select
-                s.url as s_title, s.url as s_url, i.source_id, i.url, i.title
+                s.title as s_title, s.url as s_url, i.source_id, i.url, i.title
             from item i
             join source s on i.source_id=s.id
             where i.sent_date is null
@@ -116,8 +117,12 @@ class DB:
             return False
 
         res = feedparser.parse(response)
+
         if res.bozo:
             return False
+
+        if 'title' in res.feed.keys() and res.feed['title']:
+            self.set_source_title(source['id'], res.feed['title'])
 
         for item in res['entries'][0:100]:
             try:
@@ -161,3 +166,27 @@ class DB:
         item = c.fetchone()
         c.close()
         return item
+
+    def get_source_title(self, source_id):
+        c = self.get_connection()
+        c.execute(
+            'SELECT title FROM source WHERE id = ?',
+            (source_id,)
+        )
+        res = c.fetchone()
+        c.close()
+        return res['title']
+
+    def set_source_title(self, source_id, new_title):
+        title = self.get_source_title(source_id)
+        if title and title == new_title:
+            return False
+
+        c = self.get_connection()
+        c.execute(
+            "UPDATE source SET title=? WHERE id=?",
+            (new_title, source_id)
+        )
+        self.db.commit()
+        c.close()
+        return True
