@@ -74,6 +74,14 @@ class Mailer:
                 margin:0 auto;
                 border: 1px solid;
                 background-color: #ffffff;
+                padding-bottom: 20px;
+            }
+            #footer {
+                width:600px;
+                margin:0 auto;
+                padding: 5px 0px 5px 0px;
+                text-align: right;
+                color: grey;
             }
           </style>
 
@@ -92,6 +100,8 @@ class Mailer:
                       </ul>
                   {{/sources}}
                   </ul>
+              </div>
+              <div id="footer">
                   <p>Created by {{information.product}}</p>
               </div>
           </body>
