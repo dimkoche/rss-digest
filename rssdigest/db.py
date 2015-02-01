@@ -25,14 +25,11 @@ class DB:
         self.db = sqlite3.connect(db_path)
         self.db.row_factory = sqlite3.Row
 
-    def get_connection(self):
-        return self.db.cursor()
-
     def create_db(self):
         #if os.path.exists(db_path):
         #    exit('DB file already exists: %s' % os.path.abspath(db_path))
 
-        c = self.get_connection()
+        c = self._get_connection()
         c.executescript("""
             create table source(
                 id integer primary key,
@@ -66,7 +63,7 @@ class DB:
             self.update_source(source)
 
     def get_sources(self):
-        c = self.get_connection()
+        c = self._get_connection()
         c.execute('SELECT id, url FROM source')
         res = c.fetchall()
         c.close()
@@ -80,7 +77,7 @@ class DB:
             join source s on i.source_id=s.id
             where i.sent_date is null
             order by i.source_id'''
-        c = self.get_connection()
+        c = self._get_connection()
         c.execute(sql)
 
         source_id = 0
@@ -100,6 +97,9 @@ class DB:
 
             source_id = item['source_id']
             last_item = item
+
+        if not last_item:
+            return False
 
         res.append({
             'title': last_item['s_title'],
@@ -126,28 +126,40 @@ class DB:
 
         for item in res['entries'][0:100]:
             try:
-                self.handle_feed_item(item, source)
+                self._handle_feed_item(item, source)
             except Exception as e:
                 raise e
         return False
 
-    def handle_feed_item(self, item, source):
+    def mark(self):
+        c = self._get_connection()
+        c.execute(
+            "UPDATE item SET sent_date=datetime() WHERE sent_date IS NULL;"
+        )
+        self.db.commit()
+        c.close()
+        return True
+
+    def _get_connection(self):
+        return self.db.cursor()
+
+    def _handle_feed_item(self, item, source):
         url = item.link
 
         title = 'No title'
         if 'title' in item.keys():
             title = item.title
 
-        existed_item = self.get_item_by_url(url)
+        existed_item = self._get_item_by_url(url)
         if not existed_item:
-            item_id = self.insert_item(url, title, source[0])
+            item_id = self._insert_item(url, title, source[0])
             print(url, source['id'], '===>', item_id)
         else:
             print(url, source['id'], '===> Already exists')
             return False
 
-    def insert_item(self, url, title, source_id):
-        c = self.get_connection()
+    def _insert_item(self, url, title, source_id):
+        c = self._get_connection()
         c.execute(
             "INSERT INTO item(url, title, source_id) VALUES (?, ?, ?)",
             (url, title, source_id)
@@ -157,8 +169,8 @@ class DB:
         c.close()
         return item_id
 
-    def get_item_by_url(self, url):
-        c = self.get_connection()
+    def _get_item_by_url(self, url):
+        c = self._get_connection()
         c.execute(
             'SELECT url,title,source_id,sent_date FROM item WHERE url = ?',
             (url,)
@@ -167,8 +179,8 @@ class DB:
         c.close()
         return item
 
-    def get_source_title(self, source_id):
-        c = self.get_connection()
+    def _get_source_title(self, source_id):
+        c = self._get_connection()
         c.execute(
             'SELECT title FROM source WHERE id = ?',
             (source_id,)
@@ -177,12 +189,12 @@ class DB:
         c.close()
         return res['title']
 
-    def set_source_title(self, source_id, new_title):
-        title = self.get_source_title(source_id)
+    def _set_source_title(self, source_id, new_title):
+        title = self._get_source_title(source_id)
         if title and title == new_title:
             return False
 
-        c = self.get_connection()
+        c = self._get_connection()
         c.execute(
             "UPDATE source SET title=? WHERE id=?",
             (new_title, source_id)

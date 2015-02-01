@@ -23,7 +23,7 @@ Commands:
         return False
 
     command = args[0]
-    commands = ['init', 'update', 'show', 'send']
+    commands = ['init', 'update', 'show', 'send', 'mark']
     if command not in commands:
         parser.print_usage()
         return False
@@ -36,6 +36,9 @@ Commands:
         mailer.show()
     elif command == 'send':
         mailer.send()
+    elif command == 'mark':
+        if db.mark():
+            print('All items marked as read')
 
 
 if __name__ == "__main__":
