@@ -71,7 +71,7 @@ class Mailer:
             }
             #main {
                 width:600px;
-                margin:0 auto;
+                margin: 10px auto;
                 border: 1px solid;
                 background-color: #ffffff;
                 padding-bottom: 20px;

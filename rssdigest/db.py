@@ -28,13 +28,13 @@ class DB:
     def create_db(self):
         c = self._get_connection()
         sql = """
-            create table source(
+            CREATE TABLE source(
                 id integer primary key,
                 title text,
                 url text
             );
 
-            create table item(
+            CREATE TABLE item(
                 id integer primary key,
                 source_id integer,
                 url text,
@@ -42,16 +42,31 @@ class DB:
                 sent_date text
             );
 
-            insert into source(url)
-            values
+            INSERT INTO source(url)
+            VALUES
             ("http://avva.livejournal.com/data/rss"),
             ("http://grosslarnakh.livejournal.com/data/rss"),
             ("http://anykeen.net/rss");"""
         try:
             c.executescript(sql)
         except sqlite3.OperationalError as exc:
-            print('Error: ', exc)
+            print('Error:', exc)
         c.close()
+
+    def add_source(self, url):
+        try:
+            if not get_http_response(url):
+                return False
+        except ValueError as exc:
+            print('Error:', exc)
+            return False
+
+        c = self._get_connection()
+        c.execute("INSERT INTO source(url) VALUES (?)", (url,))
+        source_id = c.lastrowid
+        self.db.commit()
+        c.close()
+        return source_id
 
     def update(self):
         sources = self.get_sources()
@@ -122,7 +137,7 @@ class DB:
             return False
 
         if 'title' in res.feed.keys() and res.feed['title']:
-            self.set_source_title(source['id'], res.feed['title'])
+            self._set_source_title(source['id'], res.feed['title'])
 
         for item in res['entries'][0:100]:
             try:
