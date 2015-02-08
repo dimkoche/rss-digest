@@ -48,20 +48,34 @@ class Mailer:
                 margin-left: 10px;
             }
 
-            a:link {
+            li.source a:link {
                 color: #333;
                 text-decoration: none;
                 border-bottom: 2px solid #c9c9c9;
             }
-            a:visited {
-                color: #c7d7ed;
+            li.source a:visited {
+                color: #333;
                 border-bottom: 1px solid;
             }
-            a:visited:hover {
+            li.source a:hover {
+                color: #000;
+                border-bottom-color: #ed7e88;
+            }
+
+            li.item a:link {
+                color: #333;
+                text-decoration: none;
+                border-bottom: 1px solid #ed7e88;
+            }
+            li.item a:visited {
                 color: #333;
                 border-bottom: 1px solid #c9c9c9;
             }
-            a:hover {
+            li.item a:visited:hover {
+                color: #333;
+                border-bottom: 1px solid #333;
+            }
+            li.item a:hover {
                 color: #000;
                 border-bottom-color: #ed7e88;
             }
