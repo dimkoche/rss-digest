@@ -61,6 +61,10 @@ class DB:
             print('Error:', exc)
             return False
 
+        if self._get_source_by_url(url):
+            print('Source already exists: ', url)
+            return False
+
         c = self._get_connection()
         c.execute("INSERT INTO source(url) VALUES (?)", (url,))
         source_id = c.lastrowid
@@ -217,3 +221,13 @@ class DB:
         self.db.commit()
         c.close()
         return True
+
+    def _get_source_by_url(self, url):
+        c = self._get_connection()
+        c.execute(
+            'SELECT id FROM source WHERE url = ?',
+            (url,)
+        )
+        item = c.fetchone()
+        c.close()
+        return item
