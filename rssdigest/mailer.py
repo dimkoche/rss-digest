@@ -49,31 +49,28 @@ class Mailer:
             }
 
             li.source a:link {
-                color: #333;
+                color: #000;
                 text-decoration: none;
-                border-bottom: 2px solid #c9c9c9;
             }
             li.source a:visited {
-                color: #333;
-                border-bottom: 1px solid;
+                color: #000;
             }
             li.source a:hover {
                 color: #000;
-                border-bottom-color: #ed7e88;
             }
 
             li.item a:link {
-                color: #333;
+                color: #337ab7;
                 text-decoration: none;
-                border-bottom: 1px solid #ed7e88;
+                border-bottom: 1px solid #337ab7;
             }
             li.item a:visited {
-                color: #333;
-                border-bottom: 1px solid #c9c9c9;
+                color: #607;
+                border-bottom: 1px solid #607;
             }
             li.item a:visited:hover {
-                color: #333;
-                border-bottom: 1px solid #333;
+                color: #000;
+                border-bottom-color: #ed7e88;
             }
             li.item a:hover {
                 color: #000;
@@ -88,7 +85,7 @@ class Mailer:
                 margin: 10px auto;
                 border: 1px solid;
                 background-color: #ffffff;
-                padding-bottom: 20px;
+                padding: 3px 10px 20px 10px;
             }
             #footer {
                 width:600px;
