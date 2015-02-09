@@ -102,7 +102,7 @@ class Mailer:
                   <ul class="sources">
                   {{#sources}}
                       <li class="source">
-                        <b><a href={{url}}>{{title}}</a></b>
+                        <b><a href={{site_url}}>{{title}}</a></b>
                       </li>
                       <ul class="items">
                       {{#items}}

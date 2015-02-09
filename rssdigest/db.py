@@ -31,7 +31,8 @@ class DB:
             CREATE TABLE source(
                 id integer primary key,
                 title text,
-                url text
+                url text,
+                site_url text
             );
 
             CREATE TABLE item(
@@ -91,7 +92,8 @@ class DB:
     def get_items(self):
         sql = '''
             select
-                s.title as s_title, s.url as s_url, i.source_id, i.url, i.title
+                s.title as s_title, ifnull(s.site_url, s.url) as s_url,
+                i.source_id, i.url, i.title
             from item i
             join source s on i.source_id=s.id
             where i.sent_date is null
@@ -107,7 +109,7 @@ class DB:
             if item['source_id'] != source_id and source_id != 0:
                 res.append({
                     'title': last_item['s_title'],
-                    'url': last_item['s_url'],
+                    'site_url': last_item['s_url'],
                     'items': items
                 })
                 items = []
@@ -122,7 +124,7 @@ class DB:
 
         res.append({
             'title': last_item['s_title'],
-            'url': last_item['s_url'],
+            'site_url': last_item['s_url'],
             'items': items
         })
         c.close()
@@ -142,6 +144,9 @@ class DB:
 
         if 'title' in res.feed.keys() and res.feed['title']:
             self._set_source_title(source['id'], res.feed['title'])
+
+        if 'link' in res.feed.keys() and res.feed['link']:
+            self._set_source_site_url(source['id'], res.feed['link'])
 
         for item in res['entries'][0:100]:
             try:
@@ -217,6 +222,30 @@ class DB:
         c.execute(
             "UPDATE source SET title=? WHERE id=?",
             (new_title, source_id)
+        )
+        self.db.commit()
+        c.close()
+        return True
+
+    def _get_source_site_url(self, source_id):
+        c = self._get_connection()
+        c.execute(
+            'SELECT site_url FROM source WHERE id = ?',
+            (source_id,)
+        )
+        res = c.fetchone()
+        c.close()
+        return res['site_url']
+
+    def _set_source_site_url(self, source_id, new_site_url):
+        site_url = self._get_source_site_url(source_id)
+        if site_url and site_url == new_site_url:
+            return False
+
+        c = self._get_connection()
+        c.execute(
+            "UPDATE source SET site_url=? WHERE id=?",
+            (new_site_url, source_id)
         )
         self.db.commit()
         c.close()
